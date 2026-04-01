@@ -3,28 +3,21 @@ import { getAllKeys } from './gemini-client';
 
 export async function geminiRequest(url, body) {
   const keys = getAllKeys();
-  const firstBatch = keys.slice(0, 3);
 
-  // Coba 3 key pertama secara paralel
-  try {
-    const result = await Promise.any(
-      firstBatch.map(key =>
-        axios.post(`${url}?key=${key}`, body)
-          .then(res => res.data)
-      )
-    );
-    return { success: true, data: result };
-
-  } catch {
-    // Kalau 3 pertama gagal, coba sisanya sequential
-    for (const key of keys.slice(3)) {
-      try {
-        const response = await axios.post(`${url}?key=${key}`, body);
-        return { success: true, data: response.data };
-      } catch {
+  for (const key of keys) {
+    try {
+      const response = await axios.post(`${url}?key=${key}`, body);
+      return { success: true, data: response.data };
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 429 || status === 403) {
+        console.warn(`Key gagal (${status}), coba key berikutnya...`);
         continue;
       }
+      console.error(error.response?.data || error.message);
+      return { success: false };
     }
-    return { success: false };
   }
+
+  return { success: false };
 }
