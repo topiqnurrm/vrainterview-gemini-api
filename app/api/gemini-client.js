@@ -1,6 +1,6 @@
 const API_KEYS = [
     process.env.GEMINI_API_KEY_1,
-    // process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_2,
     // process.env.GEMINI_API_KEY_3,
     // process.env.GEMINI_API_KEY_4,
     // process.env.GEMINI_API_KEY_5,
