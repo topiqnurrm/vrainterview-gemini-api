@@ -7,7 +7,7 @@ export async function POST(request) {
     return Response.json({ error: 'text wajib diisi' }, { status: 400 });
   }
 
-  const { success, data } = await geminiRequest(
+  const result = await geminiRequest(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent',
     {
       contents: [{ parts: [{ text }] }],
@@ -22,9 +22,14 @@ export async function POST(request) {
     }
   );
 
-  if (!success) {
-    return Response.json({ error: 'Semua API key sudah habis quota' }, { status: 429 });
+  console.log('[tts] geminiRequest result success:', result.success);
+
+  if (!result.success) {
+    return Response.json(
+      { error: result.allCooldown ? 'LIMIT_HABIS' : 'Request gagal' },
+      { status: 429 }
+    );
   }
 
-  return Response.json({ audioContent: data.candidates[0].content.parts[0].inlineData.data });
+  return Response.json({ audioContent: result.data.candidates[0].content.parts[0].inlineData.data });
 }

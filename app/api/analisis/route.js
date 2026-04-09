@@ -7,14 +7,19 @@ export async function POST(request) {
     return Response.json({ error: 'prompt wajib diisi' }, { status: 400 });
   }
 
-  const { success, data } = await geminiRequest(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+  const result = await geminiRequest(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent',
     { contents: [{ parts: [{ text: prompt }] }] }
   );
 
-  if (!success) {
-    return Response.json({ error: 'Semua API key sudah habis quota' }, { status: 429 });
+  console.log('[analisis] geminiRequest result:', JSON.stringify(result));
+
+  if (!result.success) {
+    return Response.json(
+      { error: result.allCooldown ? 'LIMIT_HABIS' : 'Request gagal' },
+      { status: 429 }
+    );
   }
 
-  return Response.json({ result: data.candidates[0].content.parts[0].text });
+  return Response.json({ result: result.data.candidates[0].content.parts[0].text });
 }
