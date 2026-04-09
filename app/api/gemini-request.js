@@ -17,11 +17,24 @@ const rrKey      = 'gemini:rr_index';
 
 // ── Cek apakah error adalah daily limit ───────────────────────────────────
 function isDailyLimit(error) {
-  const msg = (error.response?.data?.error?.message || '').toLowerCase();
+  const data    = error.response?.data || {};
+  const message = (data.error?.message || '').toLowerCase();
+  const status  = (data.error?.status  || '').toLowerCase();
+
+  // Per-minute selalu ada kata ini — BUKAN daily
+  if (message.includes('per_minute') || 
+      message.includes('per minute') ||
+      message.includes('rate_limit_exceeded') ||
+      message.includes('requests per minute')) {
+    return false;
+  }
+
+  // Daily limit punya ciri khas ini
   return (
-    msg.includes('quota exceeded') ||
-    msg.includes('daily') ||
-    msg.includes('resource_exhausted')
+    message.includes('quota exceeded') ||
+    message.includes('daily limit')    ||
+    message.includes('exceeded your current quota') ||
+    (status === 'resource_exhausted' && message.includes('daily'))
   );
 }
 
@@ -41,7 +54,7 @@ export async function geminiRequest(url, body) {
     const saved = await redis.get(rrKey);
     startIndex = saved ? Number(saved) % total : 0;
   } catch {
-    // Kalau Redis error, fallback ke 0
+    startIndex = Math.floor(Math.random() * total);
   }
 
   const now = Date.now();
