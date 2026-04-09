@@ -1,5 +1,5 @@
-import { getKeyStatus } from '../../../lib/gemini-request';
-import { getAllKeys } from '../../../lib/gemini-client';
+import { getKeyStatus } from '../gemini-request';
+import { getAllKeys } from '../gemini-client';
 
 export async function GET() {
   const keys = getAllKeys();
@@ -15,15 +15,15 @@ export async function GET() {
         : `🟡 cooldown (${s.cooldownSecondsLeft}s lagi)`;
   });
 
-  const totalReady   = statuses.filter((s) => s.ready).length;
-  const totalDaily   = statuses.filter((s) => !s.ready && s.isDaily).length;
-  const totalMinute  = statuses.filter((s) => !s.ready && !s.isDaily).length;
+  const totalReady  = statuses.filter((s) => s.ready).length;
+  const totalDaily  = statuses.filter((s) => !s.ready && s.isDaily).length;
+  const totalMinute = statuses.filter((s) => !s.ready && !s.isDaily).length;
 
   return Response.json({
     ...detail,
     summary: {
-      total_keys:    keys.length,
-      ready:         totalReady,
+      total_keys:      keys.length,
+      ready:           totalReady,
       cooldown_minute: totalMinute,
       cooldown_daily:  totalDaily,
     },
